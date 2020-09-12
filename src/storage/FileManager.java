@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Stack;
+
 
 import storage.SlottedPage.IndexOutOfBoundsException;
 import storage.SlottedPage.OverflowException;
@@ -305,19 +305,42 @@ public class FileManager implements StorageManager<Long, Object> {
 		return file;
 	}
 	class FileIterator implements Iterator<Object>{
-		private SlottedPage pg;
-		private Stack <Object> stack;
+		int spSize=0;
+		int currPg=0;
+		int FileID;
+		SlottedPage currSP;
 		FileIterator(int FileID)
 		{
-			pg =sp;
-			stack = new Stack<>();
-			fillStack();
+			this.FileID = FileID;
+			try 
+			{
+				spSize = size(FileID);				
+				currSP = page(FileID,0);
+			
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 		}
 		@Override
 		public boolean hasNext() {
 			// TODO Auto-generated method stub
-			return !stack.isEmpty();
+			boolean retval = false;
+			if(currSP.iterator().hasNext()) 
+			{
+				retval =true;
+			}
+			else
+			{				
+				++currPg;
+				if( currPg<spSize)
+				{
+					currSP = page(FileID,currPg);
+					
+				}
+			}	
+			return retval;
 		}
 
 		@Override
@@ -327,33 +350,8 @@ public class FileManager implements StorageManager<Long, Object> {
 			 if(!hasNext())
 			 {
 				 throw new NoSuchElementException();
-				 
 			 }
-			 return stack.pop();
-		}
-		private void fillStack( ) //throws IndexOutOfBoundsException, IOException
-		{
-			int count = pg.entryCount();
-			for (int i = 0; i < count; i++) {
-				int location = pg.getLocation(i);
-				if (location != -1) {
-					try 
-					{
-						Object itm =pg.get(i);
-						if(itm!=null)
-						{
-							stack.push(itm);
-						}
-					}
-					catch (Exception exp)
-					{
-						// iO exception 
-						System.out.print(exp.toString());
-					}
-				}
-			}
+			 return null;
 		}
 	}
-
-
 }
