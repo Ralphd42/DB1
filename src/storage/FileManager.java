@@ -10,6 +10,7 @@ import java.util.NoSuchElementException;
 
 import storage.SlottedPage.IndexOutOfBoundsException;
 import storage.SlottedPage.OverflowException;
+import storage.SlottedPage.SlottedPageIterator;
 
 /**
  * A {@code FileManager} manages a storage space using the slotted page format.
@@ -111,6 +112,11 @@ public class FileManager implements StorageManager<Long, Object> {
 		SlottedPageFile spfl =file(fileID);
 		// get the slotted page
 		SlottedPage pg =spfl.get(pageID);
+		if(pg==null)
+		{
+			throw new InvalidLocationException();
+			
+		}
 		Object oldval =null;
 		try {
 			oldval =pg.put(pgIndex, o);
@@ -144,6 +150,11 @@ public class FileManager implements StorageManager<Long, Object> {
 	public Object get(int fileID, Long location) throws IOException, InvalidLocationException {
 		Object retval = null;
 		SlottedPage p = page(fileID, first(location)); // the page specified by the 1st half of the location
+		if(p==null)
+		{
+			throw new InvalidLocationException();
+			
+		}
 		try {
 			retval = p.get(second(location));
 		} catch (IndexOutOfBoundsException | IOException e) {
@@ -171,6 +182,10 @@ public class FileManager implements StorageManager<Long, Object> {
 	public Object remove(int fileID, Long location) throws IOException, InvalidLocationException {
 		Object retval = null;
 		SlottedPage p = page(fileID, first(location)); // the page specified by the 1st half of the location
+		if (p==null)
+		{
+			throw new InvalidLocationException();
+		}
 		 try {
 			retval =p.remove(second(location));
 		} catch (IndexOutOfBoundsException  e) {
@@ -205,7 +220,7 @@ public class FileManager implements StorageManager<Long, Object> {
 	@Override
 	public Iterator<Object> iterator(int fileID) {
 		// TODO complete this method (10 points)
-		throw new UnsupportedOperationException();
+		return new FileIterator(fileID);
 	}
 
 	/**
@@ -309,6 +324,7 @@ public class FileManager implements StorageManager<Long, Object> {
 		int currPg=0;
 		int FileID;
 		SlottedPage currSP;
+		Iterator <Object>spi;
 		FileIterator(int FileID)
 		{
 			this.FileID = FileID;
@@ -327,7 +343,18 @@ public class FileManager implements StorageManager<Long, Object> {
 		public boolean hasNext() {
 			// TODO Auto-generated method stub
 			boolean retval = false;
-			if(currSP.iterator().hasNext()) 
+			if( currSP ==null || spSize ==0 ) 
+			{
+				return false;
+			}
+			if( spi==null)
+			{
+				spi = currSP.iterator();
+				
+				
+			}
+			
+			if(spi.hasNext()) 
 			{
 				retval =true;
 			}
@@ -336,7 +363,17 @@ public class FileManager implements StorageManager<Long, Object> {
 				++currPg;
 				if( currPg<spSize)
 				{
-					currSP = page(FileID,currPg);
+					try {
+						currSP = page(FileID,currPg);
+						spi = currSP.iterator();
+						if(currSP!=null && spi!=null && spi.hasNext()) 
+						{
+							retval =true;
+						}
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					
 				}
 			}	
@@ -351,7 +388,7 @@ public class FileManager implements StorageManager<Long, Object> {
 			 {
 				 throw new NoSuchElementException();
 			 }
-			 return null;
+			 return spi.next();
 		}
 	}
 }

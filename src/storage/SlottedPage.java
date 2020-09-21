@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
-import java.util.Stack;
+import java.util.Queue;
+ 
 
 /**
  * A {@code SlottedPage} can store objects of possibly different sizes in a byte array.
@@ -89,13 +91,12 @@ public class SlottedPage implements Iterable<Object> {
 	 *             if this {@code SlottedPage} cannot accommodate the specified object
 	 */
 	public int add(Object o) throws IOException, OverflowException {
-		int retval = 0;
+		int svindex = 0;
 		int cnt   = entryCount();
-		retval = save(o);
-		++cnt;
-		setEntryCount(cnt);
-		saveLocation(cnt-1,retval);
-		return retval;
+		svindex = save(o);
+		saveLocation(cnt,svindex);
+		setEntryCount(cnt+1);
+		return cnt;
 	}
 
 	/**
@@ -112,7 +113,10 @@ public class SlottedPage implements Iterable<Object> {
 	 *             if an I/O error occurs
 	 */
 	public Object get(int index) throws IndexOutOfBoundsException, IOException {
-		// TODO complete this method (15 points)
+		if(index<0|| index>= entryCount())
+		{
+			throw new IndexOutOfBoundsException();
+		}
 		Object retval = null;
 		int loc =getLocation( index);
 		if(loc>0)
@@ -422,18 +426,18 @@ public class SlottedPage implements Iterable<Object> {
 	}
 	class SlottedPageIterator implements Iterator<Object>{
 		private SlottedPage pg;
-		private Stack <Object> stack;
+		private Queue <Object> queue;
 		SlottedPageIterator(SlottedPage sp)
 		{
 			pg =sp;
-			stack = new Stack<>();
-			fillStack();
+			queue = new LinkedList<Object>();
+			fillQueue();
 			
 		}
 		@Override
 		public boolean hasNext() {
 			// TODO Auto-generated method stub
-			return !stack.isEmpty();
+			return !queue.isEmpty();
 		}
 
 		@Override
@@ -445,9 +449,9 @@ public class SlottedPage implements Iterable<Object> {
 				 throw new NoSuchElementException();
 				 
 			 }
-			 return stack.pop();
+			 return queue.remove();
 		}
-		private void fillStack( ) //throws IndexOutOfBoundsException, IOException
+		private void fillQueue( ) //throws IndexOutOfBoundsException, IOException
 		{
 			int count = pg.entryCount();
 			for (int i = 0; i < count; i++) {
@@ -458,7 +462,7 @@ public class SlottedPage implements Iterable<Object> {
 						Object itm =pg.get(i);
 						if(itm!=null)
 						{
-							stack.push(itm);
+							queue.add(itm);
 						}
 					}
 					catch (Exception exp)
