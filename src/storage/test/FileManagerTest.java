@@ -37,8 +37,7 @@ public class FileManagerTest {
 	 */
 	@Test
 	public void put() throws Exception {
-		FileManager m = initialize(FileManager.class);
-		long[] locations = add(m, additions);
+		FileManager m = initialize(FileManager.class);		
 		ArrayList<Integer> list = new ArrayList<Integer>();
 		for (int i = 0; i < 10; i++)
 			list.add(i);

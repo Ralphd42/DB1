@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -37,7 +38,12 @@ public class SlottedPage implements Iterable<Object> {
 	 * A flag indicating whether or not this {@code SlottedPage} has been updated and thus needs to be saved on disk.
 	 */
 	boolean dirty = true;
-
+    
+	/**
+     * last time this SlottedPage was accessed
+     */
+	LocalDateTime lastAccessed; 
+	
 	/**
 	 * Constructs a {@code SlottedPage}.
 	 * 
@@ -48,6 +54,7 @@ public class SlottedPage implements Iterable<Object> {
 		data = new byte[SIZE];
 		this.pageID = pageID;
 		setEntryCount(0);
+		lastAccessed = LocalDateTime.now();
 	}
 
 	/**
@@ -58,7 +65,23 @@ public class SlottedPage implements Iterable<Object> {
 	public int pageID() {
 		return pageID;
 	}
-
+	/**
+	 * returns the last accessed date of this {@code SlottedPage}.
+	 * @return the last accessed date of this {@code SlottedPage}
+	 */
+	public LocalDateTime lastAccessed()
+	{
+		return lastAccessed;
+	}
+	
+	
+	public void Accessed()
+	{
+		lastAccessed =LocalDateTime.now();
+	}
+	
+	
+	
 	/**
 	 * Returns the byte array of this {@code SlottedPage}.
 	 * 

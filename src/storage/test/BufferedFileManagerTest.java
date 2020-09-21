@@ -1,8 +1,12 @@
 package storage.test;
 
+import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import storage.BufferedFileManager;
+import storage.SlottedPage;
 
 /**
  * This program tests the {@code BufferedFileManager} class.
@@ -41,5 +45,5 @@ public class BufferedFileManagerTest {
 		FileManagerTest.test(BufferedFileManager.class, out, bufferSize);
 		out.println();
 	}
-
+	
 }

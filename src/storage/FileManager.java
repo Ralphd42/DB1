@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
 
 import storage.SlottedPage.IndexOutOfBoundsException;
 import storage.SlottedPage.OverflowException;
-import storage.SlottedPage.SlottedPageIterator;
+
 
 /**
  * A {@code FileManager} manages a storage space using the slotted page format.
@@ -104,26 +104,30 @@ public class FileManager implements StorageManager<Long, Object> {
 	 */
 	@Override
 	public Object put(int fileID, Long location, Object o) throws IOException, InvalidLocationException {
-//		SlottedPage p = page(fileID, first(location)); // the page specified by the 1st half of the location
-		// TODO complete this method (10 points)
-		
-		int pageID = first(location);
 		int pgIndex = second(location);
-		SlottedPageFile spfl =file(fileID);
-		// get the slotted page
-		SlottedPage pg =spfl.get(pageID);
-		if(pg==null)
+		int pgId = first(location);
+		if( pgId<0 || pgIndex<0)
 		{
 			throw new InvalidLocationException();
-			
+		}
+		SlottedPage pg = page(fileID, pgId);
+		if(pg==null)
+		{
+			pg  = new SlottedPage(pgId);
+		
 		}
 		Object oldval =null;
 		try {
 			oldval =pg.put(pgIndex, o);
-		} catch (IOException | OverflowException | IndexOutOfBoundsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (IOException ioe)
+		{
+			throw ioe;
+		}catch (OverflowException | IndexOutOfBoundsException e)
+		{
+			throw new InvalidLocationException();
+			
 		}
+
 		updated(pg,fileID);
 		
 		return oldval;
@@ -219,7 +223,7 @@ public class FileManager implements StorageManager<Long, Object> {
 	 */
 	@Override
 	public Iterator<Object> iterator(int fileID) {
-		// TODO complete this method (10 points)
+		
 		return new FileIterator(fileID);
 	}
 
